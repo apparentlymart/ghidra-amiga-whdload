@@ -14,10 +14,12 @@ import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
+import ghidra.program.model.address.Address;
 import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeConflictHandler;
 import ghidra.program.model.data.DataUtilities;
+import ghidra.program.model.data.TerminatedStringDataType;
 import ghidra.program.model.data.DataUtilities.ClearDataMode;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
@@ -93,6 +95,20 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
                         ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
             } catch (DuplicateNameException | IOException | CodeUnitInsertionException e) {
                 log.appendException(e);
+            }
+
+            // We can also add type annotations to the referents of the various
+            // relative pointers in the header, if they are set.
+            DataType cString = TerminatedStringDataType.dataType;
+            long base = dumpFile.helper.start;
+            if (header.currentDirOffset != 0) {
+                try {
+                    Address addr = fpa.toAddr(base + header.currentDirOffset);
+                    DataUtilities.createData(program, addr, cString, -1, false,
+                            ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
+                } catch (CodeUnitInsertionException e) {
+                    log.appendException(e);
+                }
             }
         }
     }
