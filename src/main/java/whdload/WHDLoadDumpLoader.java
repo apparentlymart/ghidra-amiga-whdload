@@ -38,6 +38,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.TaskMonitor;
+import structs.CustomChipRegisters;
 import structs.ResidentLoader;
 import structs.WHDLoadSlave;
 
@@ -89,6 +90,16 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
         if (dumpFile.customChips != null) {
             log.appendMsg("Creating custom chips memory block");
             this.createMemoryBlock("CustomChips", dumpFile.customChips, fpa, log);
+            try {
+                DataType regs = program.getDataTypeManager().addDataType(new CustomChipRegisters().toDataType(),
+                        DataTypeConflictHandler.DEFAULT_HANDLER);
+                DataUtilities.createData(program, fpa.toAddr(dumpFile.customChips.start), regs, -1, false,
+                        ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
+                fpa.createLabel(fpa.toAddr(dumpFile.customChips.start), "CustomChips", false);
+            } catch (Exception e) {
+                log.appendException(e);
+            }
+
         }
 
         // If we have the content of the helper program then we can do some

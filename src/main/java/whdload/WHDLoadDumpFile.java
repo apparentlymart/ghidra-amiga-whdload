@@ -137,7 +137,7 @@ public class WHDLoadDumpFile {
                     // This is the custom chips memory block, which always
                     // appears at a fixed address in the memory map.
                     log.appendMsg("Reading custom chip register values");
-                    this.customChips = new MemoryRegion(0xDF0000, 0x200, reader.readNextByteArray(0x200));
+                    this.customChips = new MemoryRegion(0xDFF000, 0x200, reader.readNextByteArray(0x200));
                     break;
                 default:
                     // We'll ignore unknown chunk types.
