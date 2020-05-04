@@ -9,17 +9,25 @@ import java.util.List;
 
 import ghidra.app.util.Option;
 import ghidra.app.util.bin.BinaryReader;
+import ghidra.app.util.bin.ByteArrayProvider;
 import ghidra.app.util.bin.ByteProvider;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.app.util.opinion.AbstractLibrarySupportLoader;
 import ghidra.app.util.opinion.LoadSpec;
 import ghidra.program.flatapi.FlatProgramAPI;
+import ghidra.program.model.data.DataType;
+import ghidra.program.model.data.DataTypeConflictHandler;
+import ghidra.program.model.data.DataUtilities;
+import ghidra.program.model.data.DataUtilities.ClearDataMode;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
+import ghidra.program.model.util.CodeUnitInsertionException;
 import ghidra.util.exception.CancelledException;
+import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.task.TaskMonitor;
+import structs.WHDLoadSlave;
 
 public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
 
@@ -57,18 +65,35 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
             log.appendMsg("Creating expansion memory block");
             this.createMemoryBlock("ExpMem", dumpFile.expMem, fpa, log);
         }
-        // if (dumpFile.resLoad != null) {
-        // log.appendMsg("Creating ResidentLoader memory block");
-        // this.createMemoryBlock("ResLoad", dumpFile.resLoad, fpa, log);
-        // }
         if (dumpFile.helper != null) {
             log.appendMsg("Creating helper program memory block");
             String name = dumpFile.helperName != null ? dumpFile.helperName : "Helper";
             this.createMemoryBlock(name, dumpFile.helper, fpa, log);
         }
+        // if (dumpFile.resLoad != null) {
+        // log.appendMsg("Creating ResidentLoader memory block");
+        // this.createMemoryBlock("ResLoad", dumpFile.resLoad, fpa, log);
+        // }
         if (dumpFile.customChips != null) {
             log.appendMsg("Creating custom chips memory block");
             this.createMemoryBlock("CustomChips", dumpFile.customChips, fpa, log);
+        }
+
+        // If we have the content of the helper program then we can do some
+        // further analysis to annotate the header and the entry point.
+        if (dumpFile.helper != null && dumpFile.helper.content != null) {
+            ByteProvider headerProvider = new ByteArrayProvider(dumpFile.helper.content);
+            WHDLoadHelperHeader header = new WHDLoadHelperHeader(headerProvider);
+            log.appendMsg(String.format("This helper targets WHDLoad v%d", header.whdloadVersion));
+            try {
+                DataType headerType = program.getDataTypeManager().addDataType(
+                        (new WHDLoadSlave(header.whdloadVersion)).toDataType(),
+                        DataTypeConflictHandler.DEFAULT_HANDLER);
+                DataUtilities.createData(program, fpa.toAddr(dumpFile.helper.start), headerType, -1, false,
+                        ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
+            } catch (DuplicateNameException | IOException | CodeUnitInsertionException e) {
+                log.appendException(e);
+            }
         }
     }
 
