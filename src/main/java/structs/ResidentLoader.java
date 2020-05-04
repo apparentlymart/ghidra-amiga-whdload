@@ -47,16 +47,17 @@ public class ResidentLoader implements StructConverter {
             new FunctionDef("resload_FlushCache", 1), new FunctionDef("resload_GetFileSize", 1),
             new FunctionDef("resload_DiskLoad", 1), new FunctionDef("resload_DiskLoadDev", 2),
             new FunctionDef("resload_CRC16", 3), new FunctionDef("resload_Control", 5),
-            new FunctionDef("resload_ProtectRead", 6), new FunctionDef("resload_ProtectReadWrte", 6),
-            new FunctionDef("resload_ProtectWrite", 6), new FunctionDef("resload_ProtectRemove", 6),
-            new FunctionDef("resload_LoadFileOffset", 6), new FunctionDef("resload_Relocate", 8),
-            new FunctionDef("resload_Delay", 8), new FunctionDef("resload_DeleteFile", 8),
-            new FunctionDef("resload_ProtectSMC", 10), new FunctionDef("resload_SetCPU", 10),
-            new FunctionDef("resload_Patch", 10), new FunctionDef("resload_LoadKick", 11),
-            new FunctionDef("resload_Delta", 11), new FunctionDef("resload_GetFileSizeDec", 11),
-            new FunctionDef("resload_PatchSeg", 15), new FunctionDef("resload_Examine", 15),
-            new FunctionDef("resload_ExNext", 15), new FunctionDef("resload_GetCustom", 15),
-            new FunctionDef("resload_VSNPrintF", 18), new FunctionDef("resload_Log", 18) };
+            new FunctionDef("resload_SaveFileOffset", 5), new FunctionDef("resload_ProtectRead", 6),
+            new FunctionDef("resload_ProtectReadWrte", 6), new FunctionDef("resload_ProtectWrite", 6),
+            new FunctionDef("resload_ProtectRemove", 6), new FunctionDef("resload_LoadFileOffset", 6),
+            new FunctionDef("resload_Relocate", 8), new FunctionDef("resload_Delay", 8),
+            new FunctionDef("resload_DeleteFile", 8), new FunctionDef("resload_ProtectSMC", 10),
+            new FunctionDef("resload_SetCPU", 10), new FunctionDef("resload_Patch", 10),
+            new FunctionDef("resload_LoadKick", 11), new FunctionDef("resload_Delta", 11),
+            new FunctionDef("resload_GetFileSizeDec", 11), new FunctionDef("resload_PatchSeg", 15),
+            new FunctionDef("resload_Examine", 15), new FunctionDef("resload_ExNext", 15),
+            new FunctionDef("resload_GetCustom", 15), new FunctionDef("resload_VSNPrintF", 18),
+            new FunctionDef("resload_Log", 18) };
 
     static class FunctionDef {
         String name;
