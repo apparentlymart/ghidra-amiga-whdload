@@ -19,16 +19,26 @@ import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeConflictHandler;
 import ghidra.program.model.data.DataUtilities;
+import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.TerminatedStringDataType;
+import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.data.DataUtilities.ClearDataMode;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
+import ghidra.program.model.lang.Register;
+import ghidra.program.model.listing.Function;
+import ghidra.program.model.listing.Parameter;
+import ghidra.program.model.listing.ParameterImpl;
 import ghidra.program.model.listing.Program;
+import ghidra.program.model.listing.Variable;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
+import ghidra.program.model.symbol.SourceType;
 import ghidra.program.model.util.CodeUnitInsertionException;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
+import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.TaskMonitor;
+import structs.ResidentLoader;
 import structs.WHDLoadSlave;
 
 public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
@@ -108,6 +118,27 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
             this.annotateHeaderRPtr(base, header.infoOffset, cString, program, log);
             this.annotateHeaderRPtr(base, header.kickNameOffset, cString, program, log);
             this.annotateHeaderRPtr(base, header.configOffset, cString, program, log);
+
+            try {
+                DataType residentLoader = new ResidentLoader(header.whdloadVersion).toDataType();
+                DataType residentLoaderPtr = new PointerDataType(residentLoader);
+                program.getDataTypeManager().addDataType(residentLoader, DataTypeConflictHandler.DEFAULT_HANDLER);
+                program.getDataTypeManager().addDataType(residentLoaderPtr, DataTypeConflictHandler.DEFAULT_HANDLER);
+                if (header.gameLoaderOffset != 0) {
+                    Address addr = fpa.toAddr(base + header.gameLoaderOffset);
+                    Function func = fpa.createFunction(addr, "start");
+                    fpa.disassemble(addr);
+                    func.setNoReturn(true); // program should exit with resload_Abort, not by returning
+                    func.setReturnType(VoidDataType.dataType, SourceType.ANALYSIS);
+                    func.setCustomVariableStorage(true);
+                    Register a0 = program.getRegister("A0");
+                    func.addParameter(new ParameterImpl("resload", residentLoaderPtr, a0, program),
+                            SourceType.ANALYSIS);
+                }
+            } catch (DuplicateNameException | IOException | InvalidInputException e) {
+                log.appendException(e);
+            }
+
         }
     }
 
