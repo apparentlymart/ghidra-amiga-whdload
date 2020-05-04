@@ -127,6 +127,7 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
                 if (header.gameLoaderOffset != 0) {
                     Address addr = fpa.toAddr(base + header.gameLoaderOffset);
                     Function func = fpa.createFunction(addr, "start");
+                    fpa.addEntryPoint(addr);
                     fpa.disassemble(addr);
                     func.setNoReturn(true); // program should exit with resload_Abort, not by returning
                     func.setReturnType(VoidDataType.dataType, SourceType.ANALYSIS);
