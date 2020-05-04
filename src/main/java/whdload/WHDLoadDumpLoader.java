@@ -101,15 +101,13 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
             // relative pointers in the header, if they are set.
             DataType cString = TerminatedStringDataType.dataType;
             long base = dumpFile.helper.start;
-            if (header.currentDirOffset != 0) {
-                try {
-                    Address addr = fpa.toAddr(base + header.currentDirOffset);
-                    DataUtilities.createData(program, addr, cString, -1, false,
-                            ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
-                } catch (CodeUnitInsertionException e) {
-                    log.appendException(e);
-                }
-            }
+            this.annotateHeaderRPtr(base, header.currentDirOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.dontCacheOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.nameOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.copyOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.infoOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.kickNameOffset, cString, program, log);
+            this.annotateHeaderRPtr(base, header.configOffset, cString, program, log);
         }
     }
 
@@ -139,6 +137,19 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
         } catch (Exception e) {
             log.appendException(e);
             return null;
+        }
+    }
+
+    private void annotateHeaderRPtr(long base, short offset, DataType type, Program program, MessageLog log) {
+        if (offset == 0) {
+            return; // nothing to do for an unset rptr
+        }
+        FlatProgramAPI fpa = new FlatProgramAPI(program);
+        try {
+            Address addr = fpa.toAddr(base + offset);
+            DataUtilities.createData(program, addr, type, -1, false, ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
+        } catch (CodeUnitInsertionException e) {
+            log.appendException(e);
         }
     }
 
