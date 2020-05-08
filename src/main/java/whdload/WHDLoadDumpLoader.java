@@ -19,6 +19,7 @@ import ghidra.program.model.address.Address;
 import ghidra.program.flatapi.FlatProgramAPI;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeConflictHandler;
+import ghidra.program.model.data.DataTypeManager;
 import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.TerminatedStringDataType;
@@ -43,6 +44,7 @@ import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.TaskMonitor;
 import structs.CustomChipRegisters;
 import structs.ResidentLoader;
+import structs.ResloadPatchList;
 import structs.WHDLoadSlave;
 
 public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
@@ -206,6 +208,12 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
                 log.appendException(e);
             }
         }
+
+        // We have some additional data types that we include in case they
+        // are helpful but that the user must assign to data manually if
+        // desired, because we can't infer them automatically.
+        DataTypeManager dtm = program.getDataTypeManager();
+        dtm.addDataType(new ResloadPatchList(), DataTypeConflictHandler.DEFAULT_HANDLER);
     }
 
     private MemoryBlock createMemoryBlock(String name, WHDLoadDumpFile.MemoryRegion spec, FlatProgramAPI fpa,
