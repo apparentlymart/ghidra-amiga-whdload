@@ -8,6 +8,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 
 public class WHDLoadDumpFile {
+    public CPU cpu;
     public MemoryRegion baseMem;
     public MemoryRegion expMem;
     public MemoryRegion resLoad;
@@ -103,6 +104,21 @@ public class WHDLoadDumpFile {
                     this.helperName = reader.readTerminatedString(bodyStart + 0x13C, "\0");
 
                     break;
+                case "CPU":
+                    CPU cpu = new CPU();
+                    cpu.d = new long[8];
+                    for (int i = 0; i < cpu.d.length; i++) {
+                        cpu.d[i] = reader.readNextUnsignedInt();
+                    }
+                    cpu.a = new long[7];
+                    for (int i = 0; i < cpu.a.length; i++) {
+                        cpu.a[i] = reader.readNextUnsignedInt();
+                    }
+                    cpu.pc = reader.readNextUnsignedInt();
+                    cpu.usp = reader.readNextUnsignedInt();
+                    cpu.ssp = reader.readNextUnsignedInt();
+                    log.appendMsg(String.format("PC is at 0x%08x", cpu.pc));
+                    this.cpu = cpu;
                 case "MEM":
                     // The whole of this block is the content of the baseMem
                     // memory region.
@@ -166,5 +182,13 @@ public class WHDLoadDumpFile {
             this(start, length);
             this.content = content;
         }
+    }
+
+    public static class CPU {
+        public long[] d;
+        public long[] a;
+        public long pc;
+        public long usp;
+        public long ssp;
     }
 }

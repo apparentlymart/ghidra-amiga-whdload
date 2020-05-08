@@ -3,6 +3,7 @@ package whdload;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -25,10 +26,12 @@ import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.data.DataUtilities.ClearDataMode;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.lang.Register;
+import ghidra.program.model.lang.RegisterValue;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Parameter;
 import ghidra.program.model.listing.ParameterImpl;
 import ghidra.program.model.listing.Program;
+import ghidra.program.model.listing.ProgramContext;
 import ghidra.program.model.listing.Variable;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
@@ -150,7 +153,58 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
             } catch (DuplicateNameException | IOException | InvalidInputException e) {
                 log.appendException(e);
             }
+        }
 
+        if (dumpFile.cpu != null) {
+            // We'll create some artificial labels to represent some of the
+            // registers, and then annotate the instruction that pc refers
+            // to with all of the other registers that aren't necessarily
+            // addresses.
+            log.appendMsg("Creating labels for PC, USP and SSP");
+            try {
+                Address pc = fpa.toAddr(dumpFile.cpu.pc);
+                fpa.createLabel(pc, "PC", false);
+                fpa.createLabel(fpa.toAddr(dumpFile.cpu.usp), "USP", false);
+                fpa.createLabel(fpa.toAddr(dumpFile.cpu.ssp), "SSP", false);
+
+                // For the program counter in particular, we'll assume it's
+                // pointing at code and try to proactively disassemble it.
+                // (This might not succeed if the program had crashed due to
+                // a bad jump, but that's okay.)
+                fpa.disassemble(pc);
+
+                // We'll also set the other register values as assumed values
+                // for the program counter address. This is a little odd since
+                // we're putting dynamic instantaneous register values in as
+                // if they were always static at this location, but for
+                // MC68000 in particular this seems to be generally
+                // informational, not affecting analysis in a harmful way.
+                // (If it does turn out to have harmful side-effects in
+                // practice, maybe we can make it optional.)
+                ProgramContext ctx = program.getProgramContext();
+                for (int i = 0; i < 7; i++) {
+                    Register reg = program.getRegister(String.format("A%d", i));
+                    BigInteger value = BigInteger.valueOf(dumpFile.cpu.a[i]);
+                    ctx.setRegisterValue(pc, pc, new RegisterValue(reg, value));
+                }
+                for (int i = 0; i < 8; i++) {
+                    Register reg = program.getRegister(String.format("D%d", i));
+                    BigInteger value = BigInteger.valueOf(dumpFile.cpu.d[i]);
+                    ctx.setRegisterValue(pc, pc, new RegisterValue(reg, value));
+                }
+                {
+                    Register reg = program.getRegister("USP");
+                    BigInteger value = BigInteger.valueOf(dumpFile.cpu.usp);
+                    ctx.setRegisterValue(pc, pc, new RegisterValue(reg, value));
+                }
+                {
+                    Register reg = program.getRegister("A7");
+                    BigInteger value = BigInteger.valueOf(dumpFile.cpu.ssp);
+                    ctx.setRegisterValue(pc, pc, new RegisterValue(reg, value));
+                }
+            } catch (Exception e) {
+                log.appendException(e);
+            }
         }
     }
 
