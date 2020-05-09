@@ -43,6 +43,7 @@ import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.TaskMonitor;
 import structs.CustomChipRegisters;
+import structs.M68KVectors;
 import structs.ResidentLoader;
 import structs.ResloadPatchList;
 import structs.WHDLoadSlave;
@@ -75,9 +76,26 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
         WHDLoadDumpFile dumpFile = new WHDLoadDumpFile(reader, monitor, log);
         log.appendMsg("Read the WHDLoad dump file");
 
+        DataType exceptionTable = null;
+        try {
+            exceptionTable = program.getDataTypeManager().addDataType(new M68KVectors().toDataType(),
+                    DataTypeConflictHandler.DEFAULT_HANDLER);
+        } catch (DuplicateNameException e) {
+            log.appendException(e);
+        }
+
         if (dumpFile.baseMem != null) {
             log.appendMsg("Creating base memory block");
             this.createMemoryBlock("BaseMem", dumpFile.baseMem, fpa, log);
+            if (exceptionTable != null) {
+                try {
+                    DataUtilities.createData(program, fpa.toAddr(0), exceptionTable, -1, false,
+                            ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
+                    fpa.createLabel(fpa.toAddr(0), "ExceptionVectors", false);
+                } catch (Exception e) {
+                    log.appendException(e);
+                }
+            }
         }
         if (dumpFile.expMem != null) {
             log.appendMsg("Creating expansion memory block");
