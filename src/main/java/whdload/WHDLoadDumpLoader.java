@@ -137,7 +137,8 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
                         DataTypeConflictHandler.DEFAULT_HANDLER);
                 DataUtilities.createData(program, fpa.toAddr(dumpFile.helper.start), headerType, -1, false,
                         ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);
-            } catch (DuplicateNameException | IOException | CodeUnitInsertionException e) {
+                fpa.createLabel(fpa.toAddr(dumpFile.helper.start), "Header", false);
+            } catch (Exception e) {
                 log.appendException(e);
             }
 
