@@ -95,6 +95,10 @@ public class CustomChipRegisters implements StructConverter {
             this.count = count;
             this.type = type;
         }
+
+        public boolean pair() {
+            return this.type != RegType.Word;
+        }
     }
 
     enum RegType {

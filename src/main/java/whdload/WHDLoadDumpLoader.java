@@ -42,6 +42,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.TaskMonitor;
+import structs.CopperInst;
 import structs.CustomChipRegisters;
 import structs.M68KVectors;
 import structs.ResidentLoader;
@@ -233,6 +234,7 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
         // desired, because we can't infer them automatically.
         DataTypeManager dtm = program.getDataTypeManager();
         dtm.addDataType(new ResloadPatchList(), DataTypeConflictHandler.DEFAULT_HANDLER);
+        dtm.addDataType(CopperInst.dataType, DataTypeConflictHandler.DEFAULT_HANDLER);
     }
 
     private MemoryBlock createMemoryBlock(String name, WHDLoadDumpFile.MemoryRegion spec, FlatProgramAPI fpa,
