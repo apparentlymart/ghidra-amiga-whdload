@@ -12,7 +12,7 @@ public class CustomChipRegisters implements StructConverter {
 
     @Override
     public DataType toDataType() throws DuplicateNameException, IOException {
-        Structure s = new StructureDataType("ResidentLoader", 0);
+        Structure s = new StructureDataType("CustomChipRegisters", 0);
         for (String name : REGISTER_NAMES) {
             s.add(WORD, 2, name, "");
         }
