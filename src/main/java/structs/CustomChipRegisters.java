@@ -101,4 +101,28 @@ public class CustomChipRegisters implements StructConverter {
         Word, DWord, Addr,
     }
 
+    public static Register[] registerByIndex;
+    static {
+        registerByIndex = new Register[256];
+        int i = 0;
+        for (Register reg : Register.values()) {
+            int length = 0;
+            switch (reg.type) {
+                case Word:
+                    length = 1;
+                    break;
+                case DWord:
+                    length = 2;
+                    break;
+                case Addr:
+                    length = 2;
+                    break;
+            }
+            int stop = i + length;
+            for (; i < stop; i++) {
+                registerByIndex[i] = reg;
+            }
+        }
+    }
+
 }
