@@ -3,7 +3,9 @@ package structs;
 import java.io.IOException;
 
 import ghidra.app.util.bin.StructConverter;
+import ghidra.program.model.data.ArrayDataType;
 import ghidra.program.model.data.DataType;
+import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.StructureDataType;
 import ghidra.util.exception.DuplicateNameException;
@@ -13,38 +15,90 @@ public class CustomChipRegisters implements StructConverter {
     @Override
     public DataType toDataType() throws DuplicateNameException, IOException {
         Structure s = new StructureDataType("CustomChipRegisters", 0);
-        for (String name : REGISTER_NAMES) {
-            s.add(WORD, 2, name, "");
+        for (Register reg : Register.values()) {
+            DataType ty = null;
+            switch (reg.type) {
+                case Word:
+                    ty = WORD;
+                    break;
+                case DWord:
+                    ty = DWORD;
+                    break;
+                case Addr:
+                    ty = new PointerDataType(VOID);
+                    break;
+            }
+            if (reg.count > 1) {
+                ty = new ArrayDataType(ty, reg.count, ty.getLength());
+            }
+            s.add(ty, ty.getLength(), reg.name(), "");
         }
         return s;
     }
 
-    static String[] REGISTER_NAMES = { "BLTDDAT", "DMACONR", "VPOSR", "VHPOSR", "DSKDATR", "JOY0DAT", "JOT1DAT",
-            "CLXDAT", "ADKCONR", "POT0DAT", "POT1DAT", "POTGOR", "SERDATR", "DSKBYTR", "INTENAR", "INTREQR", "DSKPTH",
-            "DSKPTL", "DSKLEN", "DSKDAT", "REFPTR", "VPOSW", "VHPOSW", "COPCON", "SERDAT", "SERPER", "POTGO", "JOYTEST",
-            "STREQU", "STRVBL", "STRHOR", "STRLONG", "BLTCON0", "BLTCON1", "BLTAFWM", "BLTALWM", "BLTCPTH", "BLTCPTL",
-            "BLTBPTH", "BLTBPTL", "BLTAPTH", "BLTAPTL", "BLTDPTH", "BLTDPTL", "BLTSIZE", "BLTCON0L", "BLTSIZV",
-            "BLTSIZH", "BLTCMOD", "BLTBMOD", "BLTAMOD", "BLTDMOD", "RESERVED1", "RESERVED2", "RESERVED3", "RESERVED4",
-            "BLTCDAT", "BLTBDAT", "BLTADAT", "RESERVED5", "SPRHDAT", "BPLHDAT", "LISAID", "DSKSYNC", "COP1LCH",
-            "COP1LCL", "COP2LCH", "COP2LCL", "COPJMP1", "COPJMP2", "COPINS", "DIWSTRT", "DIWSTOP", "DDFSTRT", "DDFSTOP",
-            "DMACON", "CLXCON", "INTENA", "INTREQ", "ADKCON", "AUD0LCH", "AUD0LCL", "AUD0LEN", "AUD0PER", "AUD0VOL",
-            "AUD0DAT", "RESERVED6", "RESERVED7", "AUD1LCH", "AUD1LCL", "AUD1LEN", "AUD1PER", "AUD1VOL", "AUD1DAT",
-            "RESERVED8", "RESERVED9", "AUD2LCH", "AUD2LCL", "AUD2LEN", "AUD2PER", "AUD2VOL", "AUD2DAT", "RESERVED10",
-            "RESERVED11", "AUD3LCH", "AUD3LCL", "AUD3LEN", "AUD3PER", "AUD3VOL", "AUD3DAT", "RESERVED12", "RESERVED13",
-            "BPL1PTH", "BPL1PTL", "BPL2PTH", "BPL2PTL", "BPL3PTH", "BPL3PTL", "BPL4PTH", "BPL4PTL", "BPL5PTH",
-            "BPL5PTL", "BPL6PTH", "BPL6PTL", "BPL7PTH", "BPL7PTL", "BPL8PTH", "BPL8PTL", "BPLCON0", "BPLCON1",
-            "BPLCON2", "BPLCON3", "BPL1MOD", "BPL2MOD", "BPLCON4", "CLXCON2", "BPL1DAT", "BPL2DAT", "BPL3DAT",
-            "BPL4DAT", "BPL5DAT", "BPL6DAT", "BPL7DAT", "BPL8DAT", "SPR0PTH", "SPR0PTL", "SPR1PTH", "SPR1PTL",
-            "SPR2PTH", "SPR2PTL", "SPR3PTH", "SPR3PTL", "SPR4PTH", "SPR4PTL", "SPR5PTH", "SPR5PTL", "SPR6PTH",
-            "SPR6PTL", "SPR7PTH", "SPR7PTL", "SPR0POS", "SPR0CTL", "SPR0DATA", "SPR0DATB", "SPR1POS", "SPR1CTL",
-            "SPR1DATA", "SPR1DATB", "SPR2POS", "SPR2CTL", "SPR2DATA", "SPR2DATB", "SPR3POS", "SPR3CTL", "SPR3DATA",
-            "SPR3DATB", "SPR4POS", "SPR4CTL", "SPR4DATA", "SPR4DATB", "SPR5POS", "SPR5CTL", "SPR5DATA", "SPR5DATB",
-            "SPR6POS", "SPR6CTL", "SPR6DATA", "SPR6DATB", "SPR7POS", "SPR7CTL", "SPR7DATA", "SPR7DATB", "COLOR00",
-            "COLOR01", "COLOR02", "COLOR03", "COLOR04", "COLOR05", "COLOR06", "COLOR07", "COLOR08", "COLOR09",
-            "COLOR10", "COLOR11", "COLOR12", "COLOR13", "COLOR14", "COLOR15", "COLOR16", "COLOR17", "COLOR18",
-            "COLOR19", "COLOR20", "COLOR21", "COLOR22", "COLOR23", "COLOR24", "COLOR25", "COLOR26", "COLOR27",
-            "COLOR28", "COLOR29", "COLOR30", "COLOR31", "HTOTAL", "HSSTOP", "HBSTRT", "HBSTOP", "VTOTAL", "VSSTOP",
-            "VBSTRT", "VBSTOP", "SPRHSTRT", "SPRHSTOP", "BPLHSTRT", "BPLHSTOP", "HHPOSW", "HHPOSR", "BEAMCON0",
-            "HSSTRT", "VSSTRT", "HCENTER", "DIWHIGH", "BPLHMOD", "SPRHPTH", "SPRHPTL", "BPLHPTH", "BPLHPTL",
-            "RESERVED14", "RESERVED15", "RESERVED16", "RESERVED17", "RESERVED18", "RESERVED19", "FMODE", "NOOP", };
+    enum Register {
+        BLTDDAT(RegType.Word), DMACONR(RegType.Word), VPOSR(RegType.Word), VHPOSR(RegType.Word), DSKDATR(RegType.Word),
+        JOY0DAT(RegType.Word), JOT1DAT(RegType.Word), CLXDAT(RegType.Word), AKCONR(RegType.Word), POT0DAT(RegType.Word),
+        POT1DAT(RegType.Word), POTGOR(RegType.Word), SERDATR(RegType.Word), DSKBYTR(RegType.Word),
+        INTENAR(RegType.Word), INTREQR(RegType.Word), DSKPT(RegType.DWord), DSKLEN(RegType.Word), DSKDAT(RegType.Word),
+        REFPTR(RegType.Word), VPOSW(RegType.Word), VHPOSW(RegType.Word), COPCON(RegType.Word), SERDAT(RegType.Word),
+        SERPER(RegType.Word), POTGO(RegType.Word), JOYTEST(RegType.Word), STREQU(RegType.Word), STRVBL(RegType.Word),
+        STRHOR(RegType.Word), STRLONG(RegType.Word), BLTCON0(RegType.Word), BLTCON1(RegType.Word),
+        BLTAFWM(RegType.Word), BLTALWM(RegType.Word), BLTCPT(RegType.Addr), BLTBPT(RegType.Addr), BLTAPT(RegType.Addr),
+        BLTDPT(RegType.Addr), BLTSIZE(RegType.Word), BLTCON0L(RegType.Word), BLTSIZV(RegType.Word),
+        BLTSIZH(RegType.Word), BLTCMOD(RegType.Word), BLTBMOD(RegType.Word), BLTAMOD(RegType.Word),
+        BLTDMOD(RegType.Word), RESERVED1(RegType.Word), RESERVED2(RegType.Word), RESERVED3(RegType.Word),
+        RESERVED4(RegType.Word), BLTCDAT(RegType.Word), BLTBDAT(RegType.Word), BLTADAT(RegType.Word),
+        RESERVED5(RegType.Word), SPRHDAT(RegType.Word), BPLHDAT(RegType.Word), LISAID(RegType.Word),
+        DSKSYNC(RegType.Word), COP1LC(RegType.Addr), COP2LC(RegType.Addr), COPJMP1(RegType.Word), COPJMP2(RegType.Word),
+        COPINS(RegType.Word), DIWSTRT(RegType.Word), DIWSTOP(RegType.Word), DDFSTRT(RegType.Word),
+        DDFSTOP(RegType.Word), DMACON(RegType.Word), CLXCON(RegType.Word), INTENA(RegType.Word), INTREQ(RegType.Word),
+        ADKCON(RegType.Word), AUD0LC(RegType.Addr), AUD0LEN(RegType.Word), AUD0PER(RegType.Word), AUD0VOL(RegType.Word),
+        AUD0DAT(RegType.Word), RESERVED6(RegType.Word), RESERVED7(RegType.Word), AUD1LC(RegType.Addr),
+        AUD1LEN(RegType.Word), AUD1PER(RegType.Word), AUD1VOL(RegType.Word), AUD1DAT(RegType.Word),
+        RESERVED8(RegType.Word), RESERVED9(RegType.Word), AUD2LC(RegType.Addr), AUD2LEN(RegType.Word),
+        AUD2PER(RegType.Word), AUD2VOL(RegType.Word), AUD2DAT(RegType.Word), RESERVED10(RegType.Word),
+        RESERVED11(RegType.Word), AUD3LC(RegType.Addr), AUD3LEN(RegType.Word), AUD3PER(RegType.Word),
+        AUD3VOL(RegType.Word), AUD3DAT(RegType.Word), RESERVED12(RegType.Word), RESERVED13(RegType.Word),
+        BPL1PT(RegType.Addr), BPL2PT(RegType.Addr), BPL3PT(RegType.Addr), BPL4PT(RegType.Addr), BPL5PT(RegType.Addr),
+        BPL6PT(RegType.Addr), BPL7PT(RegType.Addr), BPL8PT(RegType.Addr), BPLCON0(RegType.Word), BPLCON1(RegType.Word),
+        BPLCON2(RegType.Word), BPLCON3(RegType.Word), BPL1MOD(RegType.Word), BPL2MOD(RegType.Word),
+        BPLCON4(RegType.Word), CLXCON2(RegType.Word), BPL1DAT(RegType.Word), BPL2DAT(RegType.Word),
+        BPL3DAT(RegType.Word), BPL4DAT(RegType.Word), BPL5DAT(RegType.Word), BPL6DAT(RegType.Word),
+        BPL7DAT(RegType.Word), BPL8DAT(RegType.Word), SPR0PT(RegType.Addr), SPR1PT(RegType.Addr), SPR2PT(RegType.Addr),
+        SPR3PT(RegType.Addr), SPR4PT(RegType.Addr), SPR5PT(RegType.Addr), SPR6PT(RegType.Addr), SPR7PT(RegType.Addr),
+        SPR0POS(RegType.Word), SPR0CTL(RegType.Word), SPR0DATA(RegType.Word), SPR0DATB(RegType.Word),
+        SPR1POS(RegType.Word), SPR1CTL(RegType.Word), SPR1DATA(RegType.Word), SPR1DATB(RegType.Word),
+        SPR2POS(RegType.Word), SPR2CTL(RegType.Word), SPR2DATA(RegType.Word), SPR2DATB(RegType.Word),
+        SPR3POS(RegType.Word), SPR3CTL(RegType.Word), SPR3DATA(RegType.Word), SPR3DATB(RegType.Word),
+        SPR4POS(RegType.Word), SPR4CTL(RegType.Word), SPR4DATA(RegType.Word), SPR4DATB(RegType.Word),
+        SPR5POS(RegType.Word), SPR5CTL(RegType.Word), SPR5DATA(RegType.Word), SPR5DATB(RegType.Word),
+        SPR6POS(RegType.Word), SPR6CTL(RegType.Word), SPR6DATA(RegType.Word), SPR6DATB(RegType.Word),
+        SPR7POS(RegType.Word), SPR7CTL(RegType.Word), SPR7DATA(RegType.Word), SPR7DATB(RegType.Word),
+        COLOR(RegType.Word, 32), HTOTAL(RegType.Word), HSSTOP(RegType.Word), HBSTRT(RegType.Word), HBSTOP(RegType.Word),
+        VTOTAL(RegType.Word), VSSTOP(RegType.Word), VBSTRT(RegType.Word), VBSTOP(RegType.Word), SPRHSTRT(RegType.Word),
+        SPRHSTOP(RegType.Word), BPLHSTRT(RegType.Word), BPLHSTOP(RegType.Word), HHPOSW(RegType.Word),
+        HHPOSR(RegType.Word), BEAMCON0(RegType.Word), HSSTRT(RegType.Word), VSSTRT(RegType.Word), HCENTER(RegType.Word),
+        DIWHIGH(RegType.Word), BPLHMOD(RegType.Word), SPRHPT(RegType.Addr), BPLHPT(RegType.Addr),
+        RESERVED14(RegType.Word), RESERVED15(RegType.Word), RESERVED16(RegType.Word), RESERVED17(RegType.Word),
+        RESERVED18(RegType.Word), RESERVED19(RegType.Word), FMODE(RegType.Word), NOOP(RegType.Word);
+
+        public RegType type;
+        public int count;
+
+        Register(RegType type) {
+            this.count = 1;
+            this.type = type;
+        }
+
+        Register(RegType type, int count) {
+            this.count = count;
+            this.type = type;
+        }
+    }
+
+    enum RegType {
+        Word, DWord, Addr,
+    }
+
 }
