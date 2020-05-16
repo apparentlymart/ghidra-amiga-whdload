@@ -29,11 +29,9 @@ import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.lang.Register;
 import ghidra.program.model.lang.RegisterValue;
 import ghidra.program.model.listing.Function;
-import ghidra.program.model.listing.Parameter;
 import ghidra.program.model.listing.ParameterImpl;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.listing.ProgramContext;
-import ghidra.program.model.listing.Variable;
 import ghidra.program.model.mem.Memory;
 import ghidra.program.model.mem.MemoryBlock;
 import ghidra.program.model.symbol.SourceType;
@@ -47,7 +45,7 @@ import structs.CustomChipRegisters;
 import structs.M68KVectors;
 import structs.ResidentLoader;
 import structs.ResloadPatchList;
-import structs.WHDLoadSlave;
+import structs.WHDLoadHeader;
 
 public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
 
@@ -134,7 +132,7 @@ public class WHDLoadDumpLoader extends AbstractLibrarySupportLoader {
             log.appendMsg(String.format("This helper targets WHDLoad v%d", header.whdloadVersion));
             try {
                 DataType headerType = program.getDataTypeManager().addDataType(
-                        (new WHDLoadSlave(header.whdloadVersion)).toDataType(),
+                        (new WHDLoadHeader(header.whdloadVersion)).toDataType(),
                         DataTypeConflictHandler.DEFAULT_HANDLER);
                 DataUtilities.createData(program, fpa.toAddr(dumpFile.helper.start), headerType, -1, false,
                         ClearDataMode.CLEAR_ALL_UNDEFINED_CONFLICT_DATA);

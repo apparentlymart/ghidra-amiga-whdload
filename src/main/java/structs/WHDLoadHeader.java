@@ -9,16 +9,16 @@ import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.StructureDataType;
 import ghidra.util.exception.DuplicateNameException;
 
-public class WHDLoadSlave implements StructConverter {
+public class WHDLoadHeader implements StructConverter {
     private int whdloadVersion;
 
-    public WHDLoadSlave(int whdloadVersion) {
+    public WHDLoadHeader(int whdloadVersion) {
         this.whdloadVersion = whdloadVersion;
     }
 
     @Override
     public DataType toDataType() throws DuplicateNameException, IOException {
-        Structure s = new StructureDataType("WHDLoadSlave", 0);
+        Structure s = new StructureDataType("WHDLoadHeader", 0);
 
         s.add(new ArrayDataType(BYTE, 4, 1), "ws_Security", "moveq #-1,d0 rts");
         s.add(new ArrayDataType(BYTE, 8, 1), "ws_ID", "WHDLOADS");
